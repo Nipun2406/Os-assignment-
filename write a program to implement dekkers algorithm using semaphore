@@ -1,0 +1,71 @@
+#include <iostream>
+#include <thread>
+#include <atomic>
+#include <semaphore.h>
+
+using namespace std;
+
+const int THREAD_COUNT = 2;
+
+sem_t semaphores[THREAD_COUNT];
+atomic<int> turn(0);
+atomic<bool> flag[THREAD_COUNT] = {false, false};
+
+void criticalSection(int id) {
+    cout << "Thread " << id << " is in critical section." << endl;
+}
+
+void nonCriticalSection(int id) {
+    cout << "Thread " << id << " is in non-critical section." << endl;
+}
+
+void dekkersAlgorithm(int id) {
+    while (true) {
+        flag[id] = true;
+        while (flag[1 - id]) {
+            if (turn != id) {
+                flag[id] = false;
+                while (turn != id) {
+                    // Wait
+                }
+                flag[id] = true;
+            }
+        }
+
+        // Critical Section
+        sem_wait(&semaphores[id]);
+        criticalSection(id);
+        sem_post(&semaphores[id]);
+
+        turn = 1 - id;
+        flag[id] = false;
+
+        // Non-Critical Section
+        nonCriticalSection(id);
+    }
+}
+
+int main() {
+    // Initialize semaphores
+    for (int i = 0; i < THREAD_COUNT; ++i) {
+        sem_init(&semaphores[i], 0, 1);
+    }
+
+    // Create threads
+    thread t[THREAD_COUNT];
+    for (int i = 0; i < THREAD_COUNT; ++i) {
+        t[i] = thread(dekkersAlgorithm, i);
+    }
+
+    // Join threads
+    for (int i = 0; i < THREAD_COUNT; ++i) {
+        t[i].join();
+    }
+
+    // Destroy semaphores
+    for (int i = 0; i < THREAD_COUNT; ++i) {
+        sem_destroy(&semaphores[i]);
+    }
+
+    return 0;
+}
