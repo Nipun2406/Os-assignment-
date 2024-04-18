@@ -1,0 +1,84 @@
+#include <iostream>
+#include <thread>
+#include <semaphore.h>
+#include <mutex>
+
+using namespace std;
+
+const int READERS_COUNT = 5;
+const int WRITERS_COUNT = 3;
+
+sem_t readerMutex, writerMutex;
+int readerCount = 0;
+
+void readerFunction(int id) {
+    while (true) {
+        sem_wait(&readerMutex);
+        readerCount++;
+        if (readerCount == 1) {
+            sem_wait(&writerMutex);
+        }
+        sem_post(&readerMutex);
+
+        // Reading the shared resource
+        cout << "Reader " << id << " is reading." << endl;
+
+        sem_wait(&readerMutex);
+        readerCount--;
+        if (readerCount == 0) {
+            sem_post(&writerMutex);
+        }
+        sem_post(&readerMutex);
+
+        // Simulating delay
+        this_thread::sleep_for(chrono::milliseconds(1000));
+    }
+}
+
+void writerFunction(int id) {
+    while (true) {
+        sem_wait(&writerMutex);
+
+        // Writing to the shared resource
+        cout << "Writer " << id << " is writing." << endl;
+
+        sem_post(&writerMutex);
+
+        // Simulating delay
+        this_thread::sleep_for(chrono::milliseconds(1500));
+    }
+}
+
+int main() {
+    // Initialize semaphores
+    sem_init(&readerMutex, 0, 1);
+    sem_init(&writerMutex, 0, 1);
+
+    // Create reader threads
+    thread readerThreads[READERS_COUNT];
+    for (int i = 0; i < READERS_COUNT; ++i) {
+        readerThreads[i] = thread(readerFunction, i + 1);
+    }
+
+    // Create writer threads
+    thread writerThreads[WRITERS_COUNT];
+    for (int i = 0; i < WRITERS_COUNT; ++i) {
+        writerThreads[i] = thread(writerFunction, i + 1);
+    }
+
+    // Join reader threads
+    for (int i = 0; i < READERS_COUNT; ++i) {
+        readerThreads[i].join();
+    }
+
+    // Join writer threads
+    for (int i = 0; i < WRITERS_COUNT; ++i) {
+        writerThreads[i].join();
+    }
+
+    // Destroy semaphores
+    sem_destroy(&readerMutex);
+    sem_destroy(&writerMutex);
+
+    return 0;
+}
