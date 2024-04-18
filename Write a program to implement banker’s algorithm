@@ -1,0 +1,72 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+// Function to check if the current state is safe or not
+bool isSafe(const vector<vector<int>>& max, const vector<vector<int>>& allocated,
+            const vector<int>& available, const vector<int>& need, vector<bool>& finish) {
+    int n = max.size();
+    vector<int> work = available;
+    vector<bool> finishCopy = finish;
+
+    int count = 0;
+    while (count < n) {
+        bool found = false;
+        for (int i = 0; i < n; ++i) {
+            if (!finishCopy[i]) {
+                bool canAllocate = true;
+                for (int j = 0; j < max[i].size(); ++j) {
+                    if (need[i][j] > work[j]) {
+                        canAllocate = false;
+                        break;
+                    }
+                }
+                if (canAllocate) {
+                    for (int j = 0; j < allocated[i].size(); ++j) {
+                        work[j] += allocated[i][j];
+                    }
+                    finishCopy[i] = true;
+                    found = true;
+                    ++count;
+                }
+            }
+        }
+        if (!found) {
+            return false; // System is in an unsafe state
+        }
+    }
+    return true; // System is in a safe state
+}
+
+// Banker's algorithm function
+bool bankersAlgorithm(const vector<vector<int>>& max, const vector<vector<int>>& allocated,
+                      const vector<int>& available) {
+    int n = max.size();
+    vector<bool> finish(n, false);
+    vector<vector<int>> need(n, vector<int>(max[0].size(), 0));
+
+    // Calculate need matrix
+    for (int i = 0; i < n; ++i) {
+        for (int j = 0; j < max[i].size(); ++j) {
+            need[i][j] = max[i][j] - allocated[i][j];
+        }
+    }
+
+    // Check if the system is in a safe state
+    return isSafe(max, allocated, available, need, finish);
+}
+
+int main() {
+    vector<vector<int>> max = {{7, 5, 3}, {3, 2, 2}, {9, 0, 2}, {2, 2, 2}, {4, 3, 3}};
+    vector<vector<int>> allocated = {{0, 1, 0}, {2, 0, 0}, {3, 0, 2}, {2, 1, 1}, {0, 0, 2}};
+    vector<int> available = {3, 3, 2};
+
+    if (bankersAlgorithm(max, allocated, available)) {
+        cout << "System is in a safe state." << endl;
+    } else {
+        cout << "System is in an unsafe state." << endl;
+    }
+
+    return 0;
+}
