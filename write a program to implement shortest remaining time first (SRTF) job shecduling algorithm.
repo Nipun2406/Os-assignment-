@@ -1,0 +1,73 @@
+#include <iostream>
+#include <vector>
+#include <queue>
+
+using namespace std;
+
+struct Process {
+    int id;
+    int arrivalTime;
+    int burstTime;
+    int remainingTime;
+};
+
+struct CompareBurstTime {
+    bool operator()(const Process& p1, const Process& p2) {
+        return p1.remainingTime > p2.remainingTime;
+    }
+};
+
+void SRTF(vector<Process>& processes) {
+    int currentTime = 0;
+    int completedProcesses = 0;
+    int n = processes.size();
+    priority_queue<Process, vector<Process>, CompareBurstTime> pq;
+
+    while (completedProcesses < n) {
+        // Add arrived processes to the priority queue
+        for (int i = 0; i < n; ++i) {
+            if (processes[i].arrivalTime <= currentTime && processes[i].remainingTime > 0) {
+                pq.push(processes[i]);
+            }
+        }
+
+        if (pq.empty()) {
+            // If no process is available, move to the next arrival time
+            currentTime++;
+        } else {
+            // Execute the process with the shortest remaining time
+            Process currentProcess = pq.top();
+            pq.pop();
+
+            cout << "Executing Process " << currentProcess.id << " at Time " << currentTime;
+            currentProcess.remainingTime--;
+
+            if (currentProcess.remainingTime == 0) {
+                // Process completed
+                completedProcesses++;
+                cout << ", Completed" << endl;
+            } else {
+                // Process not completed, push it back to the queue
+                cout << ", Remaining Time: " << currentProcess.remainingTime << endl;
+                pq.push(currentProcess);
+            }
+
+            // Move to the next time unit
+            currentTime++;
+        }
+    }
+}
+
+int main() {
+    // Example usage
+    vector<Process> processes = {
+        {1, 0, 5, 5},
+        {2, 2, 3, 3},
+        {3, 4, 1, 1},
+        {4, 6, 4, 4}
+    };
+
+    SRTF(processes);
+
+    return 0;
+}
