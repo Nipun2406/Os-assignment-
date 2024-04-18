@@ -1,0 +1,38 @@
+#include <iostream>
+#include <vector>
+
+using namespace std;
+
+struct Process {
+    int id;
+    int arrivalTime;
+    int burstTime;
+};
+
+void FCFS(vector<Process>& processes) {
+    int currentTime = 0;
+    cout << "Process Execution Order:" << endl;
+
+    for (const auto& process : processes) {
+        if (currentTime < process.arrivalTime)
+            currentTime = process.arrivalTime;
+
+        cout << "Executing Process " << process.id << " at Time " << currentTime;
+        currentTime += process.burstTime;
+        cout << ", Completed at Time " << currentTime << endl;
+    }
+}
+
+int main() {
+    // Example usage
+    vector<Process> processes = {
+        {1, 0, 5},
+        {2, 2, 3},
+        {3, 4, 1},
+        {4, 6, 4}
+    };
+
+    FCFS(processes);
+
+    return 0;
+}
