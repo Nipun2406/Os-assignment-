@@ -1,0 +1,78 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+
+using namespace std;
+
+struct Process {
+    int id;
+    int priority;
+    vector<int> dependencies;
+};
+
+class DisjointSet {
+private:
+    unordered_map<int, int> parent;
+    unordered_map<int, int> rank;
+
+public:
+    DisjointSet() {}
+
+    void makeSet(int x) {
+        if (parent.find(x) == parent.end()) {
+            parent[x] = x;
+            rank[x] = 0;
+        }
+    }
+
+    int find(int x) {
+        if (parent[x] != x)
+            parent[x] = find(parent[x]);
+        return parent[x];
+    }
+
+    void merge(int x, int y) {
+        int rootX = find(x);
+        int rootY = find(y);
+        if (rootX != rootY) {
+            if (rank[rootX] < rank[rootY])
+                swap(rootX, rootY);
+            parent[rootY] = rootX;
+            if (rank[rootX] == rank[rootY])
+                rank[rootX]++;
+        }
+    }
+};
+
+vector<Process> primMST(const vector<Process>& processes) {
+    vector<Process> mst;
+    DisjointSet ds;
+
+    // Add all processes to the disjoint set
+    for (const auto& process : processes)
+        ds.makeSet(process.id);
+
+    // Implement Prim's algorithm here
+
+    return mst;
+}
+
+int main() {
+    // Example usage
+    vector<Process> processes = {
+        {0, 10, {1, 2}},
+        {1, 8, {3}},
+        {2, 6, {}},
+        {3, 7, {2}},
+        {4, 5, {0, 1}}
+    };
+
+    vector<Process> mst = primMST(processes);
+
+    // Output the minimum spanning tree
+    cout << "Minimum Spanning Tree:" << endl;
+    for (const auto& process : mst)
+        cout << "Process ID: " << process.id << ", Priority: " << process.priority << endl;
+
+    return 0;
+}
