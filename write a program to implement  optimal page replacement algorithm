@@ -1,0 +1,56 @@
+#include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <queue>
+
+using namespace std;
+
+int optimalPageReplacement(const vector<int>& pages, int capacity) {
+    int pageFaults = 0;
+    unordered_map<int, int> memory;
+    queue<int> futureAccess;
+
+    for (int i = 0; i < pages.size(); ++i) {
+        if (memory.find(pages[i]) == memory.end()) {
+            if (memory.size() == capacity) {
+                int pageToRemove = -1, farthest = -1;
+                unordered_map<int, int> memoryCopy = memory;
+
+                while (!futureAccess.empty()) {
+                    int nextPage = futureAccess.front();
+                    futureAccess.pop();
+                    memoryCopy.erase(nextPage);
+
+                    if (memoryCopy.size() == 1) {
+                        pageToRemove = memoryCopy.begin()->first;
+                        break;
+                    }
+
+                    if (memoryCopy.find(nextPage) != memoryCopy.end() && memoryCopy[nextPage] > farthest) {
+                        farthest = memoryCopy[nextPage];
+                        pageToRemove = nextPage;
+                    }
+                }
+
+                memory.erase(pageToRemove);
+            }
+
+            memory[pages[i]] = i;
+            futureAccess.push(pages[i]);
+            ++pageFaults;
+        } else {
+            futureAccess.push(pages[i]);
+        }
+    }
+
+    return pageFaults;
+}
+
+int main() {
+    vector<int> pages = {2, 3, 1, 3, 2, 1, 4, 5};
+    int capacity = 3;
+
+    cout << "Total page faults using Optimal Page Replacement Algorithm: " << optimalPageReplacement(pages, capacity) << endl;
+
+    return 0;
+}
