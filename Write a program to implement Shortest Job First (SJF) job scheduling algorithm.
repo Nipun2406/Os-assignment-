@@ -1,0 +1,46 @@
+#include <iostream>
+#include <algorithm>
+using namespace std;
+
+struct Process {
+    int id;
+    int burstTime;
+};
+
+bool compare(Process a, Process b) {
+    return a.burstTime < b.burstTime;
+}
+
+void findAvgTime(Process proc[], int n) {
+    sort(proc, proc + n, compare);
+    int wt = 0, total_wt = 0, total_tat = 0;
+
+    cout << "Process\tBurst Time\tWaiting Time\tTurnaround Time\n";
+    for (int i = 0; i < n; i++) {
+        cout << proc[i].id << "\t\t" << proc[i].burstTime << "\t\t" << wt << "\t\t" << wt + proc[i].burstTime << "\n";
+        total_wt += wt;
+        wt += proc[i].burstTime;
+        total_tat += wt;
+    }
+
+    cout << "\nAverage waiting time: " << (float)total_wt / n << endl;
+    cout << "Average turnaround time: " << (float)total_tat / n << endl;
+}
+
+int main() {
+    int n;
+    cout << "Enter the number of processes: ";
+    cin >> n;
+    Process proc[n];
+
+    cout << "Enter burst time for each process:\n";
+    for (int i = 0; i < n; i++) {
+        proc[i].id = i + 1;
+        cout << "Burst time for process " << i + 1 << ": ";
+        cin >> proc[i].burstTime;
+    }
+
+    findAvgTime(proc, n);
+
+    return 0;
+}
